@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\User;
 use App\Helper\Token;
+use Firebase\JWT\JWT;
 
 class userController extends Controller
 {
@@ -94,9 +95,17 @@ class userController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        //
+        $email = $request->data_token->email;
+        $user = User::where('email', $email)->first();
+        if($request->password == decrypt($user->password)) {
+            $user->delete();
+            return response()->json([
+                "message" => 'el usuario ha sido eliminado'
+            ], 200);
+        }
+        
     }
 
     public function login(Request $request){
@@ -105,7 +114,7 @@ class userController extends Controller
         $user = User::where($data_token)->first();  
        
         if ($user!=null) {       
-            if($request->password == $user->password)
+            if($request->password == decrypt($user->password))
             {       
                 $token = new Token($data_token);
                 $tokenEncoded = $token->encode();
