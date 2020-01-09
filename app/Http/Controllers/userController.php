@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\User;
 use App\Helper\Token;
 use Firebase\JWT\JWT;
+use App\application;
 
 class userController extends Controller
 {
@@ -51,7 +52,7 @@ class userController extends Controller
                 "token" => $tokenEncoded
             ], 201);
         }else{
-            return response()->json(["Error" => "No se pueden crear usuarios con el mismo Email o con el Email vacío"]);
+            return response()->json(["Error" => "No se pueden crear usuarios con el mismo Email o con el Email vacio"]);
         }
     }
 
@@ -61,9 +62,20 @@ class userController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request)
     {
-        //
+        $email = $request->data_token->email;
+        $user = User::where('email', $email)->first();
+
+        foreach ($user as $key => $value) 
+        {
+            $application = application::where('user_id', $user->id)->get();
+        }
+
+        return response()->json([
+            "User" => $user, 
+                "Apps" => $application
+        ], 200);
     }
 
     /**
@@ -86,7 +98,26 @@ class userController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $email = $request->data_token->email;
+        $user = User::where('email', $email)->first();
+        
+        if($request->old_password == decrypt($user->password)) 
+        {
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->password = encrypt($request->new_password);
+            $user->update();
+
+            return response()->json([
+                "message" => 'los datos han sido modificados'
+            ], 200);
+
+        } else {
+            return response()->json([
+                "Error" => 'No puedes modificar los datos, la contraseña es incprrecta'
+            ])
+        }
+        
     }
 
     /**
@@ -99,18 +130,24 @@ class userController extends Controller
     {
         $email = $request->data_token->email;
         $user = User::where('email', $email)->first();
+
         if($request->password == decrypt($user->password)) {
             $user->delete();
+
             return response()->json([
                 "message" => 'el usuario ha sido eliminado'
             ], 200);
+
+        } else {
+            return response()->json([
+                "Error" => 'La contraseña es incorrecta'
+            ], 401);
         }
         
     }
 
     public function login(Request $request){
         $data_token = ['email'=>$request->email];
-        
         $user = User::where($data_token)->first();  
        
         if ($user!=null) {       
