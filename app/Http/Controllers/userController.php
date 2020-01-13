@@ -69,7 +69,7 @@ class userController extends Controller
 
         foreach ($user as $key => $value) 
         {
-            $application = application::where('user_id', $user->id)->get();
+            $application = application::all('user_id', $user->id)->get();
         }
 
         return response()->json([
@@ -115,7 +115,7 @@ class userController extends Controller
         } else {
             return response()->json([
                 "Error" => 'No puedes modificar los datos, la contraseña es incprrecta'
-            ])
+            ]);
         }
         
     }

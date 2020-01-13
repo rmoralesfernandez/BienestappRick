@@ -17,7 +17,7 @@ class CreateRestrictionsTable extends Migration
 
             $table->increments('id');
             
-            $table->date('max_time');
+            $table->time('max_time');
             $table->dateTime('start_hour_restriction');
             $table->dateTime('finish_hour_restriction');
 

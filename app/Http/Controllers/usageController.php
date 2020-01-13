@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\usage;
 
 class usageController extends Controller
 {
@@ -34,7 +35,8 @@ class usageController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $usage = new usage();
+        $usage->new_usage($request);
     }
 
     /**
@@ -43,9 +45,19 @@ class usageController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request)
     {
-        //
+        $email = $request->data_token->email;
+        $user = User::where('email', $email)->first();
+
+        foreach ($user as $key => $value) 
+        {
+            $usage = usage::where('user_id', $user->id)->get();
+        }
+
+        return response()->json ([
+            "usage" => $usage
+        ], 200);
     }
 
     /**
