@@ -13,12 +13,12 @@ class CreateUsageTable extends Migration
      */
     public function up()
     {
-        Schema::create('usage', function (Blueprint $table) {
+        Schema::create('app_usage', function (Blueprint $table) {
 
             $table->increments('id');
 
             $table->date('day');
-            $table->dateTime('useTime');
+            $table->Integer('useTime');
             $table->String('location');
 
             $table->Integer('user_id')->unsigned();

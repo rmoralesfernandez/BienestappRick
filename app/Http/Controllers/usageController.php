@@ -1,9 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
+use DB;
 
 use Illuminate\Http\Request;
+use DateTime;
 use App\usage;
+use App\User;
+use App\application;
 
 class usageController extends Controller
 {
@@ -35,8 +39,37 @@ class usageController extends Controller
      */
     public function store(Request $request)
     {
-        $usage = new usage();
-        $usage->new_usage($request);
+        $csv = array_map('str_getcsv' , file('/Applications/MAMP/htdocs/Rick/BienestappRick/storage/app/usageRick.csv'));
+
+        $countArray = count($csv);
+        
+        $email = $request->data_token->email;
+        $user = User::where('email',$email)->first();
+        
+        for ($i=1; $i < $countArray ; $i++) { 
+
+            $openDate = new DateTime ($csv[$i][0]);
+            $application = $csv[$i][1];
+            $openLocation = $csv[$i][3] . "," . $csv[$i][4];
+
+            $i++;
+
+            $closeDate =  new DateTime ($csv[$i][0]);
+            // $timeUsed se guarda en segundos 
+            $timeUsed = $closeDate->getTimestamp() - $openDate->getTimestamp();
+
+            $application = application::where('name',$application)->first();
+
+            if (isset($application)) {
+
+                $newUsage = new usage();
+                $newUsage->new_usage($openDate,$timeUsed,$openLocation,$user->id,$application->id);   
+            }               
+
+
+        }
+
+        return response()->json(["Success" => "Se ha añadido el uso de todas las aplicaciones"]);
     }
 
     /**
@@ -48,16 +81,23 @@ class usageController extends Controller
     public function show(Request $request)
     {
         $email = $request->data_token->email;
-        $user = User::where('email', $email)->first();
+        $user = User::where('email',$email)->first();
+        $usage = new usage();        
+        $usages = $usage->getUsage($user->id);
+        
+        
+        return response()->json($usages , 201);
+    }
 
-        foreach ($user as $key => $value) 
-        {
-            $usage = usage::where('user_id', $user->id)->get();
-        }
-
-        return response()->json ([
-            "usage" => $usage
-        ], 200);
+     public function map(Request $request)
+    {
+        $email = $request->data_token->email;
+        $user = User::where('email',$email)->first();
+        $usage = new usage();        
+        $usages = $usage->getLocationUsage($user->id);
+        
+        
+        return response()->json($usages , 201);
     }
 
     /**

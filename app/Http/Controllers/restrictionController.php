@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\restriction;
 use App\Helper\Token;
+use App\application;
+use App\User;
 
 class restrictionController extends Controller
 {
@@ -104,13 +106,28 @@ class restrictionController extends Controller
     {
         $restriction = restriction::where('id',$request->id)->first();
          if (isset($restriction)) {
-    
-            $restriction->max_time = $request->max_time;
-            $restriction->start_hour_restriction = $request->start_hour_restriction;
-            $restriction->finish_hour_restriction = $request->finish_hour_restriction;
-            $restriction->update();
+
+            if (is_null($request->max_time)) {
+
+                if (is_null($request->start_hour_restriction) || is_null($request->finish_hour_restriction)) {
+
+                    return response()->json(["Error" => "Debe de haber alguna restriction"]);
+
+                }else{     
+
+                    $restriction->start_hour_restriction = $request->start_hour_restriction;
+                    $restriction->finish_hour_restriction = $request->finish_hour_restriction;
+                    $restriction->update();
+                    return response()->json(["Success" => "Se ha modificado la restriction"]);
+                }
+            }else{
+                
+                $restriction->max_time = $request->max_time;
+                $restriction->update();
+                return response()->json(["Success" => "Se ha modificado la restriction"]);
+            }
         
-            return response()->json(["Success" => "Se ha modificado la restriccion."]);
+                return response()->json(["Success" => "Se ha modificado la restriccion."]);
         }else{
             return response()->json(["Error" => "La restriccion no existe"]);
         } 

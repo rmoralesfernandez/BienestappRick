@@ -67,15 +67,8 @@ class userController extends Controller
         $email = $request->data_token->email;
         $user = User::where('email', $email)->first();
 
-        foreach ($user as $key => $value) 
-        {
-            $application = application::all('user_id', $user->id)->get();
-        }
-
-        return response()->json([
-            "User" => $user, 
-                "Apps" => $application
-        ], 200);
+        $user->password = decrypt($user->password);
+        return response()->json($user, 201);
     }
 
     /**
@@ -96,21 +89,19 @@ class userController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         $email = $request->data_token->email;
         $user = User::where('email', $email)->first();
         
-        if($request->old_password == decrypt($user->password)) 
+        if(isset($user)) 
         {
-            $user->name = $request->name;
-            $user->email = $request->email;
             $user->password = encrypt($request->new_password);
             $user->update();
 
             return response()->json([
                 "message" => 'los datos han sido modificados'
-            ], 200);
+            ], 201);
 
         } else {
             return response()->json([
@@ -168,7 +159,7 @@ class userController extends Controller
             $newPassword = self::randomPassword();
             self::sendEmail($user->email,$newPassword);
             
-                $user->password = $newPassword;
+                $user->password = encrypt($newPassword);
                 $user->update();
             
             return response()->json(["Success" => "Se ha restablecido su contraseña, revise su correo electronico."]);

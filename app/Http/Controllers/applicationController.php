@@ -55,13 +55,13 @@ class applicationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show()
     {
         $application = new application();
         $applications = $application->getApplications();
         if(isset($applications)){
            
-            return response()->json(["Success" => $applications]);
+            return response()->json($applications, 201);
         }else{
             return response()->json(["Error" => "No hay aplicaciones guardadas"]);
         }

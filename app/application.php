@@ -28,4 +28,9 @@ class application extends Model
         }
         return false;
     }
+
+    Public function getApplications(){
+        $applications = self::all();
+        return $applications;
+    }
 }
